@@ -1,0 +1,6 @@
+#pragma once
+
+
+int sys_inb_cnt(port_t port, uint32_t *byte);
+
+

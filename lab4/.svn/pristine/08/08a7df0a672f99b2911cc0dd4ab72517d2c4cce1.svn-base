@@ -1,0 +1,9 @@
+@lcflib.a:2018, lcf_start
+  mouse_test_packet(cnt)
+  @mousedriver.c:24, mouse_subscribe_int
+    sys_irqsetpolicy(IRQ_LINE_MOUSE, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id)
+  > sys_irqsetpolicy(12, 3, addr: 0x816342c [12])
+  < sys_irqsetpolicy(12, 3, addr: 0x816342c [10]) -> (ret: 0)
+  @lab4.c:62, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6e0, addr: 0xeffff728)

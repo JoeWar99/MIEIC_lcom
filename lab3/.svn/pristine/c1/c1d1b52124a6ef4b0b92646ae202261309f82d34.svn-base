@@ -1,0 +1,136 @@
+#include <lcom/lcf.h>
+#include "kbc.h"
+#include "i8042.h"
+#include "kbd.h"
+#include "i8254.h"
+#include <minix/drivers.h>
+#include <minix/syslib.h>
+#include <minix/sysutil.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+int sys_inb_counter = 0;
+int return_kbc_ih = 0;
+
+uint8_t scancode = INITIALIZE0;
+
+#ifdef LAB3
+int sys_inb_cnt(port_t port, uint32_t *byte);
+#else
+#  define sys_inb_cnt(p, q) sys_inb_cnt(p, q)
+#endif
+
+int(sys_inb_cnt)(port_t port, uint32_t *byte) {
+  if (sys_inb(port, byte) != 0)
+    return 1;
+  sys_inb_counter++;
+  return 0;
+}
+
+void(kbc_ih)() {
+  /*uint32_t scancode32bit= INITIALIZE0;
+  sys_inb_cnt_cnt_cnt(OUT_BUF, &scancode32bit);
+  scancode = (uint8_t)(scancode32bit & 0xFF);*/
+  //INTERRUPT HANDLER MUITO SIMPLES NAO CONSEGUE VER SE O BUFFER ESTA CHEIO OU NAO
+  uint32_t statusregister = INITIALIZE0;
+  uint32_t scancode32bit = INITIALIZE0, scancode8bit = INITIALIZE0;
+
+  if (sys_inb_cnt(STAT_REG, &statusregister) != 0) {
+    return_kbc_ih = -1;
+    return; /* assuming it returns OK */
+  }
+  /* loop while 8042 output buffer is empty */
+  if (statusregister & OBF) {
+
+    if (sys_inb_cnt(OUT_BUF, &scancode32bit) != 0) {
+      return_kbc_ih = -1; /* assuming it returns OK */
+      return;
+    }
+
+    scancode8bit = (uint8_t)(scancode32bit & CAST_PARA_8BITS);
+
+    if ((statusregister & (PAR_ERR | TO_ERR)) == 0) {
+      return_kbc_ih = 1;
+      scancode = scancode8bit;
+      return;
+    }
+    else {
+      return_kbc_ih = -1;
+      return;
+    }
+  }
+  return;
+}
+int(keyboard_command_issue)(uint8_t comand) {
+
+  int tries = 5, i = 0;
+  uint32_t stat32bit;
+  uint8_t stat8bit;
+
+  while (i < tries) {
+    sys_inb_cnt(STAT_REG, &stat32bit);
+    stat8bit = (uint8_t)(stat32bit & CAST_PARA_8BITS);
+
+    if ((stat8bit & IBF) == INITIALIZE0) {
+      sys_outb(KBC_CMD_REG, comand);
+      return 0;
+    }
+    i++;
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+  return -1;
+}
+
+int(keyboard_command_receive)(uint8_t *leitura) {
+  int tries = 5, i = 0;
+
+  uint32_t stat32bit, scancode32bit = INITIALIZE0;
+  uint8_t stat8bit, scancode8bit;
+
+  while (i < tries) {
+    sys_inb_cnt(STAT_REG, &stat32bit);
+    stat8bit = (uint8_t)(stat32bit & CAST_PARA_8BITS);
+
+    if (stat8bit & OBF) {
+
+      sys_inb_cnt(OUT_BUF, &scancode32bit); /* assuming it returns OK */
+
+      scancode8bit = (uint8_t)(scancode32bit & CAST_PARA_8BITS);
+
+      if ((stat8bit & (PAR_ERR | TO_ERR)) == 0) {
+
+        *leitura = scancode8bit;
+        return 0;
+      }
+      else
+        return -1;
+    }
+    i++;
+    tickdelay(micros_to_ticks(DELAY_US));
+  }
+
+  return -1;
+}
+
+int(keyboard_messaging)(uint8_t *leitura, uint8_t comand) {
+
+  uint32_t leituraaux;
+
+  if (comand == WRITE_COMMAND_BYTE) {
+    if ((keyboard_command_issue(READ_COMMAND_BYTE) != 0))
+      return -1;
+
+    if ((keyboard_command_receive(leitura) != 0))
+      return -1;
+
+    *leitura = (*leitura) | COMMANDBYTE_ENABLE_KEYBOARD;
+
+    leituraaux = *leitura;
+
+    keyboard_command_issue(WRITE_COMMAND_BYTE);
+
+    sys_outb(IN_BUFS, leituraaux);
+  }
+  return 0;
+}

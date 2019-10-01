@@ -1,0 +1,11 @@
+#pragma once
+
+int (sys_inb_cnt)(port_t port, uint32_t *byte);
+
+int (keyboard_messaging)(uint8_t *leitura, uint8_t comand);
+
+int (keyboard_command_issue)(uint8_t comand);
+
+int (keyboard_command_receive)(uint8_t *leitura);
+
+void(kbc_ih)();

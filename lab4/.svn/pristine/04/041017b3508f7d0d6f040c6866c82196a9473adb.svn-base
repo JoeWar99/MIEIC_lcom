@@ -1,0 +1,398 @@
+// IMPORTANT: you must include the following line in all your C files
+#include <lcom/lcf.h>
+#include <lcom/lab4.h>
+#include <stdint.h>
+#include <stdio.h>
+#include "mousedriver.h"
+#include "i8042.h"
+#include "i8254.h"
+#include <stdbool.h>
+#include "kbc.h"
+
+extern int hook_id;
+extern uint8_t mousebyte;
+
+int main(int argc, char *argv[])
+{
+  // sets the language of LCF messages (can be either EN-US or PT-PT)
+  lcf_set_language("EN-US");
+
+  // enables to log function invocations that are being "wrapped" by LCF
+  // [comment this out if you don't want/need/ it]
+  lcf_trace_calls("/home/lcom/labs/lab4/trace.txt");
+
+  // enables to save the output of printf function calls on a file
+  // [comment this out if you don't want/need it]
+  lcf_log_output("/home/lcom/labs/lab4/output.txt");
+
+  // handles control over to LCF
+  // [LCF handles command line arguments and invokes the right function]
+  if (lcf_start(argc, argv))
+    return 1;
+
+  // LCF clean up tasks
+  // [must be the last statement before return]
+  lcf_cleanup();
+
+  return 0;
+}
+
+int(mouse_test_packet)(uint32_t cnt)
+{
+  int ipc_status, r, irq_set, contadorbytes = 0, sinalx, sinaly;
+  message msg;
+  uint8_t bit_no;
+  uint16_t mousebyte16bits;
+  uint8_t lixo;
+
+  struct packet leitura;
+  uint8_t arg_report = INITIALIZE0;
+
+  if (mouse_subscribe_int(&bit_no) != 0)
+    return 1;
+
+  irq_set = BIT(bit_no);
+  if (mouse_messaging(&arg_report, 0xf4) != 0)
+  {
+    printf("erro no mouse_messaging quando tentavamos mandar 0xf4");
+    return -1;
+  }
+
+  if (arg_report == 0xfe)
+  {
+    if (mouse_messaging(&arg_report, 0xf4) != 0)
+    {
+      printf("erro no mouse_messaging quando tentavamos mandar 0xf4");
+      return -1;
+    }
+  }
+  if (arg_report == 0xfc)
+  {
+    printf("second consecutive invalid byte");
+    return -1;
+  }
+
+  if (keyboard_command_receive(&lixo) != 0)
+  {
+    return -1;
+  }
+
+  while (cnt > 0)
+  { //condiçao para sair do ciclo do interrupts, caso se detete o scancode do esc
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0)
+    {
+      printf("driver_receive failed with: %d", r);
+      continue;
+    }
+    if (is_ipc_notify(ipc_status))
+    {
+      switch (_ENDPOINT_P(msg.m_source))
+      {
+      case HARDWARE:
+
+        if (msg.m_notify.interrupts & irq_set)
+        {
+          mouse_ih();
+
+          //testar a sincronizacao
+          if (contadorbytes == 0)
+          {
+            if ((mousebyte & BIT(3)) != 0)
+            {
+
+              leitura.bytes[0] = mousebyte;
+
+              if ((mousebyte & L_B) != 0)
+                leitura.lb = TRUE;
+              else
+                leitura.lb = FALSE;
+
+              if ((mousebyte & M_B) != 0)
+                leitura.mb = TRUE;
+              else
+                leitura.mb = FALSE;
+
+              if ((mousebyte & R_B) != 0)
+                leitura.rb = TRUE;
+              else
+                leitura.rb = FALSE;
+
+              if ((mousebyte & Y_OVFL) != 0)
+                leitura.y_ov = TRUE;
+              else
+                leitura.y_ov = FALSE;
+
+              if ((mousebyte & X_OVFL) != 0)
+                leitura.x_ov = TRUE;
+              else
+                leitura.x_ov = FALSE;
+
+              if ((mousebyte & X_SIGN) != 0)
+              {
+                sinalx = 1;
+              }
+              else
+                sinalx = 0;
+
+              if ((mousebyte & Y_SIGN) != 0)
+              {
+                sinaly = 1;
+              }
+              else
+                sinaly = 0;
+            }
+            else
+              continue;
+          }
+
+          else if (contadorbytes == 1)
+          {
+
+            leitura.bytes[1] = mousebyte;
+
+            if (sinalx == 1)
+            {
+              mousebyte16bits = 0;
+              mousebyte16bits = mousebyte;
+              mousebyte16bits = (mousebyte16bits ^ 0xff) + 0x01;
+              leitura.delta_x = mousebyte16bits;
+            }
+            else
+            {
+              mousebyte16bits = 0;
+              mousebyte16bits = mousebyte;
+
+              leitura.delta_x = mousebyte16bits;
+            }
+          }
+
+          else if (contadorbytes == 2)
+          {
+            leitura.bytes[2] = mousebyte;
+
+            if (sinaly == 1)
+            {
+              mousebyte16bits = 0;
+              mousebyte16bits = mousebyte;
+              mousebyte16bits = (mousebyte16bits ^ 0xff) + 0x01;
+              leitura.delta_y = mousebyte16bits;
+            }
+            else
+            {
+              mousebyte16bits = 0;
+              mousebyte16bits = mousebyte;
+              leitura.delta_y = mousebyte16bits;
+            }
+            contadorbytes = -1;
+            cnt--;
+            mouse_print_packet(&leitura);
+          }
+          else if (contadorbytes > 2)
+            contadorbytes = -1;
+          contadorbytes++;
+        }
+        break;
+      default:
+        break;
+      }
+    }
+    else
+    {
+      //fica vazio
+    }
+  }
+  if (mouse_messaging(&arg_report, 0xf5) != 0)
+  {
+    return -1;
+  }
+  if ((mouse_unsubscribe_int()) != 0)
+  {
+    return -1;
+  }
+
+  return 0;
+}
+
+int(mouse_test_remote)(uint16_t period, uint8_t cnt)
+{
+  int contadorbytes = 0, sinalx, sinaly;
+  uint8_t bit_no;
+  uint16_t mousebyte16bits;
+  uint8_t lixo;
+
+  struct packet leitura;
+  uint8_t arg_report = INITIALIZE0;
+
+  if (mouse_subscribe_int(&bit_no) != 0)
+    return 1;
+
+  if (mouse_messaging(&arg_report, 0xf5) != 0)
+  {
+    printf("erro no mouse_messaging quando tentavamos mandar 0xf4");
+    return -1;
+  }
+
+  if (arg_report == 0xfe)
+  {
+    if (mouse_messaging(&arg_report, 0xf5) != 0)
+    {
+      printf("erro no mouse_messaging quando tentavamos mandar 0xf4");
+      return -1;
+    }
+  }
+  if (arg_report == 0xfc)
+  {
+    printf("second consecutive invalid byte");
+    return -1;
+  }
+
+  if (mouse_messaging(&arg_report, 0xf0) != 0)
+  {
+    printf("erro no mouse_messaging quando tentavamos mandar 0xf4");
+    return -1;
+  }
+
+  if (arg_report == 0xfe)
+  {
+    if (mouse_messaging(&arg_report, 0xf0) != 0)
+    {
+      printf("erro no mouse_messaging quando tentavamos mandar 0xf4");
+      return -1;
+    }
+  }
+  if (arg_report == 0xfc)
+  {
+    printf("second consecutive invalid byte");
+    return -1;
+  }
+  if (keyboard_command_receive(&lixo) != 0)
+  {
+    return -1;
+  }
+
+  while (cnt > 0)
+  {
+    if (mouse_messaging(&arg_report, 0xeb) != 0)
+    {
+      printf("erro no mouse_messaging quando tentavamos mandar 0xf4");
+      return -1;
+    }
+    printf("arg report %x\n", arg_report);
+    mousebyte = arg_report;
+
+      //testar a sincronizacao
+      if (contadorbytes == 0)
+      {
+        if ((mousebyte & BIT(3)) != 0)
+        {
+
+          leitura.bytes[0] = mousebyte;
+
+          if ((mousebyte & L_B) != 0)
+            leitura.lb = TRUE;
+          else
+            leitura.lb = FALSE;
+
+          if ((mousebyte & M_B) != 0)
+            leitura.mb = TRUE;
+          else
+            leitura.mb = FALSE;
+
+          if ((mousebyte & R_B) != 0)
+            leitura.rb = TRUE;
+          else
+            leitura.rb = FALSE;
+
+          if ((mousebyte & Y_OVFL) != 0)
+            leitura.y_ov = TRUE;
+          else
+            leitura.y_ov = FALSE;
+
+          if ((mousebyte & X_OVFL) != 0)
+            leitura.x_ov = TRUE;
+          else
+            leitura.x_ov = FALSE;
+
+          if ((mousebyte & X_SIGN) != 0)
+          {
+            sinalx = 1;
+          }
+          else
+            sinalx = 0;
+
+          if ((mousebyte & Y_SIGN) != 0)
+          {
+            sinaly = 1;
+          }
+          else
+            sinaly = 0;
+        }
+        else
+          continue;
+      }
+
+      else if (contadorbytes == 1)
+      {
+
+        leitura.bytes[1] = mousebyte;
+
+        if (sinalx == 1)
+        {
+          mousebyte16bits = 0;
+          mousebyte16bits = mousebyte;
+          mousebyte16bits = (mousebyte16bits ^ 0xff) + 0x01;
+          leitura.delta_x = mousebyte16bits;
+        }
+        else
+        {
+          mousebyte16bits = 0;
+          mousebyte16bits = mousebyte;
+
+          leitura.delta_x = mousebyte16bits;
+        }
+      }
+
+      else if (contadorbytes == 2)
+      {
+        leitura.bytes[2] = mousebyte;
+
+        if (sinaly == 1)
+        {
+          mousebyte16bits = 0;
+          mousebyte16bits = mousebyte;
+          mousebyte16bits = (mousebyte16bits ^ 0xff) + 0x01;
+          leitura.delta_y = mousebyte16bits;
+        }
+        else
+        {
+          mousebyte16bits = 0;
+          mousebyte16bits = mousebyte;
+          leitura.delta_y = mousebyte16bits;
+        }
+        contadorbytes = -1;
+        cnt--;
+        mouse_print_packet(&leitura);
+      }
+      else if (contadorbytes > 2)
+        contadorbytes = -1;
+    contadorbytes++;
+    tickdelay(micros_to_ticks(period));
+  }
+
+  printf("%s(%u, %u): under construction\n", __func__, period, cnt);
+  return 1;
+}
+
+int(mouse_test_async)(uint8_t idle_time)
+{
+  /* To be completed */
+  printf("%s(%u): under construction\n", __func__, idle_time);
+  return 1;
+}
+
+int(mouse_test_gesture)()
+{
+  /* To be completed */
+  printf("%s: under construction\n", __func__);
+  return 1;
+}

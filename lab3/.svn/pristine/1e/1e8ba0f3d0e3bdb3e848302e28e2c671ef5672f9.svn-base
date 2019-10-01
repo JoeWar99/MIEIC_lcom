@@ -1,0 +1,28 @@
+#include <lcom/lcf.h>
+#include <lcom/lab3.h>
+#include <minix/drivers.h>
+#include <minix/syslib.h>
+#include <minix/sysutil.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#include "kbd.h"
+#include "i8042.h"
+#include "kbc.h"
+
+int sys_inb_counter=0;
+
+#ifdef LAB3
+int sys_inb_cnt(port_t port, uint32_t*byte);
+#else
+#define sys_inb_cnt(p,q) sys_inb_cnt(p,q)
+#endif
+
+int sys_inb_cnt(port_t port, uint32_t*byte){
+  sys_inb_cnt(port,byte);
+  sys_inb_counter++;
+  return 0;
+}
+

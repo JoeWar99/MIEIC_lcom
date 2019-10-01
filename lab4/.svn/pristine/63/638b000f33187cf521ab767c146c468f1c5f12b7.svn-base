@@ -1,0 +1,178 @@
+// IMPORTANT: you must include the following line in all your C files
+#include <lcom/lcf.h>
+#include <minix/drivers.h>
+#include <minix/syslib.h>
+#include <minix/sysutil.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <lcom/lab4.h>
+#include "i8254.h"
+#include "i8042.h"
+#include "kbc.h"
+#include "mousedriver.h"
+
+
+extern int hook_id;
+extern uint8_t mousepacket;
+// Any header files included below this line should have been created by you
+
+int main(int argc, char *argv[]) {
+  // sets the language of LCF messages (can be either EN-US or PT-PT)
+  lcf_set_language("EN-US");
+
+  // enables to log function invocations that are being "wrapped" by LCF
+  // [comment this out if you don't want/need/ it]
+  lcf_trace_calls("/home/lcom/labs/lab4/trace.txt");
+
+  // enables to save the output of printf function calls on a file
+  // [comment this out if you don't want/need it]
+  lcf_log_output("/home/lcom/labs/lab4/output.txt");
+
+  // handles control over to LCF
+  // [LCF handles command line arguments and invokes the right function]
+  if (lcf_start(argc, argv))
+    return 1;
+
+  // LCF clean up tasks
+  // [must be the last statement before return]
+  lcf_cleanup();
+
+  return 0;
+}
+
+
+int (mouse_test_packet)(uint32_t cnt) {
+
+  int ipc_status, r, irq_set;
+  uint8_t bit_no;
+  message msg;
+  int counter = 1;
+  uint32_t numeropackets=0;
+  struct packet leitura;
+  int x_sign , y_sign;
+  uint16_t mousepacket16bits;
+
+  if (mouse_subscribe_int(&bit_no) != 0) // subscrever os interruptds do keyboard
+    return -1;
+
+  irq_set = BIT(bit_no); // metê se o irq set a 1  que é o que corresponde ao keyboard
+  mouse_enable_data_reporting();
+
+  while (numeropackets<cnt) { //condiçao para sair do ciclo do interrupts, caso se detete o scancode do esc
+    //printf("Ze e gay\n");
+    if ((r = driver_receive(ANY, &msg, &ipc_status)) != 0) {
+      printf("driver_receive failed with: %d", r);
+      continue;
+    }
+    printf("cnt %d, numeropackets %d\n",cnt, numeropackets);
+
+    //printf("Ze gay\n");
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:
+
+          if (msg.m_notify.interrupts & irq_set) {
+
+
+             //temos que chamar o messaging para mandar para lá o commando para meter o mouse no stream mode;
+            mouse_ih();
+            if(counter == 1){
+              if((mousepacket & BIT(3))==0){
+                printf("bytesS NÃO ESTÃO SINCRONIZADOS\n");
+                continue;
+             }
+
+              leitura.bytes[0]=mousepacket;
+
+              if((mousepacket & (L_B))==1)
+                leitura.lb = TRUE;
+              else if((mousepacket & (L_B))!=1)
+                leitura.lb = FALSE;
+              else if((mousepacket & M_B)==1)
+                leitura.mb = TRUE;
+              else if((mousepacket & (M_B))!=1)
+                leitura.mb = FALSE;
+
+              else if((mousepacket & R_B)==1)
+                leitura.rb = TRUE;
+              else if((mousepacket & (R_B))!=1)
+                leitura.rb = FALSE;
+
+              if((mousepacket & Y_OVFL)==1)
+                leitura.y_ov = TRUE;
+              else
+                leitura.y_ov = FALSE;
+
+              if((mousepacket & X_OVFL)==1)
+                leitura.x_ov = TRUE;
+              else
+                leitura.x_ov = FALSE;
+
+              x_sign = (mousepacket & X_SIGN);
+              y_sign = (mousepacket & Y_SIGN);
+            }
+            else if (counter == 2){
+
+              leitura.bytes[1] = mousepacket;
+
+              if(x_sign == 1){
+                mousepacket16bits = mousepacket;
+                leitura.delta_x = (mousepacket16bits | SINALNEGATIVO);
+              }
+              else
+                leitura.delta_x = mousepacket16bits;
+            }
+
+            else if(counter == 3){
+              leitura.bytes[1] = mousepacket;
+              if(y_sign == 1){
+                mousepacket16bits = mousepacket;
+                leitura.delta_y = (mousepacket16bits | SINALNEGATIVO);
+              }
+              else
+                leitura.delta_y = mousepacket16bits;
+
+              mouse_print_packet(&leitura);
+              /*leitura.bytes[0]=0;
+              leitura.bytes[1]=0;
+              leitura.bytes[2]=0;*/
+              counter = 1;
+              numeropackets++;
+            }
+
+        }
+
+          break;
+        default:
+          break;
+    }
+  }else {
+      //fica vazio
+    }
+    counter++;
+  }
+  printf("Sai do while");
+
+  if ((mouse_unsubscribe_int()) != 0) { //unsubscribe os interrupts do keyboard
+    return -1;
+}
+    return 0;
+}
+
+int (mouse_test_remote)(uint16_t period, uint8_t cnt) {
+    /* To be completed */
+    printf("%s(%u, %u): under construction\n", __func__, period, cnt);
+    return 1;
+}
+
+int (mouse_test_async)(uint8_t idle_time) {
+    /* To be completed */
+    printf("%s(%u): under construction\n", __func__, idle_time);
+    return 1;
+}
+
+int (mouse_test_gesture)() {
+    /* To be completed */
+    printf("%s: under construction\n", __func__);
+    return 1;
+}

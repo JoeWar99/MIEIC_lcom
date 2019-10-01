@@ -1,0 +1,19 @@
+#pragma once
+
+ 
+int kb_subscribe_int(uint8_t* (bit_no));
+
+/**
+ * @brief Unsubscribes Timer 0 interrupts
+ *
+ * @return Return 0 upon success and non-zero otherwise
+ */
+int keyboardb_unsubscribe_int();
+
+/**
+ * @brief Timer 0 interrupt handler
+ *
+ * Increments counter
+ */
+void keyboard_int_handler();
+

@@ -1,0 +1,95 @@
+@lcflib.a:2018, lcf_start
+  mouse_test_remote(period, cnt)
+  @mousedriver.c:24, mouse_subscribe_int
+    sys_irqsetpolicy(IRQ_LINE_MOUSE, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id)
+  > sys_irqsetpolicy(12, 3, addr: 0x8163090 [12])
+  < sys_irqsetpolicy(12, 3, addr: 0x8163090 [10]) -> (ret: 0)
+  @kbc.c:56, keyboard_command_issue
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6bc)
+  < sys_inb(0x64, addr: 0xeffff6bc [0x1c = 0b00011100])
+  @kbc.c:60, keyboard_command_issue
+    sys_outb(registo, command)
+  > sys_outb(0x64, 0xd4 = 0b11010100)
+  @kbc.c:56, keyboard_command_issue
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6bc)
+  < sys_inb(0x64, addr: 0xeffff6bc [0x1c = 0b00011100])
+  @kbc.c:60, keyboard_command_issue
+    sys_outb(registo, command)
+  > sys_outb(0x60, 0xf5 = 0b11110101)
+  @kbc.c:77, keyboard_command_receive
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6b4)
+  < sys_inb(0x64, addr: 0xeffff6b4 [0x3d = 0b00111101])
+  @kbc.c:81, keyboard_command_receive
+    sys_inb(OUT_BUF, &commandbyte32bits)
+  > sys_inb(0x60, addr: 0xeffff6b0)
+  < sys_inb(0x60, addr: 0xeffff6b0 [0xfa = 0b11111010])
+  @kbc.c:56, keyboard_command_issue
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6bc)
+  < sys_inb(0x64, addr: 0xeffff6bc [0x1c = 0b00011100])
+  @kbc.c:60, keyboard_command_issue
+    sys_outb(registo, command)
+  > sys_outb(0x64, 0xd4 = 0b11010100)
+  @kbc.c:56, keyboard_command_issue
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6bc)
+  < sys_inb(0x64, addr: 0xeffff6bc [0x1c = 0b00011100])
+  @kbc.c:60, keyboard_command_issue
+    sys_outb(registo, command)
+  > sys_outb(0x60, 0xf0 = 0b11110000)
+  @kbc.c:77, keyboard_command_receive
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6b4)
+  < sys_inb(0x64, addr: 0xeffff6b4 [0x3d = 0b00111101])
+  @kbc.c:81, keyboard_command_receive
+    sys_inb(OUT_BUF, &commandbyte32bits)
+  > sys_inb(0x60, addr: 0xeffff6b0)
+  < sys_inb(0x60, addr: 0xeffff6b0 [0xfa = 0b11111010])
+  @kbc.c:77, keyboard_command_receive
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6c8)
+  < sys_inb(0x64, addr: 0xeffff6c8 [0x1c = 0b00011100])
+  @kbc.c:92, keyboard_command_receive
+    micros_to_ticks(DELAY_US)
+  @kbc.c:92, keyboard_command_receive
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])
+  @kbc.c:77, keyboard_command_receive
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6c8)
+  < sys_inb(0x64, addr: 0xeffff6c8 [0x1c = 0b00011100])
+  @kbc.c:92, keyboard_command_receive
+    micros_to_ticks(DELAY_US)
+  @kbc.c:92, keyboard_command_receive
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])
+  @kbc.c:77, keyboard_command_receive
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6c8)
+  < sys_inb(0x64, addr: 0xeffff6c8 [0x1c = 0b00011100])
+  @kbc.c:92, keyboard_command_receive
+    micros_to_ticks(DELAY_US)
+  @kbc.c:92, keyboard_command_receive
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])
+  @kbc.c:77, keyboard_command_receive
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6c8)
+  < sys_inb(0x64, addr: 0xeffff6c8 [0x1c = 0b00011100])
+  @kbc.c:92, keyboard_command_receive
+    micros_to_ticks(DELAY_US)
+  @kbc.c:92, keyboard_command_receive
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])
+  @kbc.c:77, keyboard_command_receive
+    sys_inb(STAT_REG, &stat32bit)
+  > sys_inb(0x64, addr: 0xeffff6c8)
+  < sys_inb(0x64, addr: 0xeffff6c8 [0x1c = 0b00011100])
+  @kbc.c:92, keyboard_command_receive
+    micros_to_ticks(DELAY_US)
+  @kbc.c:92, keyboard_command_receive
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])

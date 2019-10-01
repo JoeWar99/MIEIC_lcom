@@ -1,0 +1,23 @@
+service pp2 { 
+	system 
+		DEVIO 
+		IRQCTL 
+		; 
+	ipc 
+		SYSTEM 
+		rs 
+		vm 
+		pm 
+		vfs 
+		; 
+	io 
+		60 
+		64 
+		; 
+	irq 
+		12 # MOUSE IRQ
+		; 
+	uid 
+		0 
+		; 
+};

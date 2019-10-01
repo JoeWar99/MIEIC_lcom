@@ -1,0 +1,199 @@
+@lcflib.a:2018, lcf_start
+  video_test_rectangle(mode, x, y, width, height, color)
+> video_test_rectangle(0x105, 0, 0, 30, 40, 0x0000003f [63])
+  @lab5.c:97, video_test_rectangle
+    lm_init(false)
+  < lm_init(false) -> (ret: 0xefafd000)
+  @lab5.c:99, video_test_rectangle
+    vg_init(mode)
+  > vg_init(0x105)
+    @vbe1.c:34, vbe_get_mode_info_ours
+      lm_alloc(sizeof(vbe_mode_info_t), &map)
+    < lm_alloc(256, addr: 0xeffff270 [phys: 0x0008f000, virt: 0xefb8c000, size: 256 bytes]) -> (ret: 0xefb8c000)
+    @vbe1.c:49, vbe_get_mode_info_ours
+      sys_int86(&reg)
+    > sys_int86(addr: 0xeffff248 [AX: 4f01, BX: 0000, CX: 0105, DX: 0000, ES: 8000, DI: f000])
+    < sys_int86(addr: 0xeffff248 [AX: 004f, BX: 0000, CX: 0105, DX: 0000, ES: 8000, DI: f000]) -> (ret: 0)
+    @vbe1.c:61, vbe_get_mode_info_ours
+      lm_free(&map)
+    < lm_free(addr: 0xeffff270 [phys: 0x0008f000, virt: 0xefb8c000, size: 256 bytes]) -> (ret: true)
+    @vbe1.c:246, vg_init
+      sys_privctl(SELF, SYS_PRIV_ADD_MEM, &mr)
+    > sys_privctl(SELF, SYS_PRIV_ADD_MEM, addr: 0xeffff3e0 [0xe0000000 - 0xe00c0000 <768 KiB>])
+    < sys_privctl(SELF, SYS_PRIV_ADD_MEM, &mr) -> (ret: 0)
+    @vbe1.c:251, vg_init
+      vm_map_phys(SELF, (void *) mr.mr_base, vram_size)
+    < vm_map_phys(SELF, addr: 0xe0000000, 768 KiB) -> (ret: 0xefa3c000)
+    @vbe1.c:262, vg_init
+      sys_int86(&r)
+    > sys_int86(addr: 0xeffff3b8 [AX: 4f02, BX: 4105, CX: 0000, DX: 0000, ES: 0000, DI: 0000])
+    < sys_int86(addr: 0xeffff3b8 [AX: 004f, BX: 4105, CX: 0000, DX: 0000, ES: 0000, DI: 0000]) -> (ret: 0)
+  < vg_init(0x105) -> (ret: 0xefa3c000)
+  @kbd.c:23, kb_subscribe_int
+    sys_irqsetpolicy(IRQ_LINE_KEYBOARD, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id)
+  > sys_irqsetpolicy(1, 3, addr: 0x81a8364 [1])
+  < sys_irqsetpolicy(1, 3, addr: 0x81a8364 [13]) -> (ret: 0)
+  @lab5.c:113, video_test_rectangle
+    vg_draw_rectangle(x, y, width, height, color)
+  > vg_draw_rectangle(0, 0, 30, 40, 0x0000003f [63])
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 0, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 1, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 2, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 3, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 4, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 5, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 6, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 7, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 8, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 9, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 10, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 11, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 12, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 13, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 14, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 15, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 16, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 17, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 18, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 19, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 20, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 21, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 22, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 23, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 24, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 25, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 26, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 27, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 28, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 29, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 30, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 31, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 32, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 33, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 34, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 35, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 36, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 37, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 38, 30, 0x0000003f [63]) -> (ret: 0)
+    @vbe1.c:282, vg_draw_rectangle
+      vg_draw_hline(x, i, width, color)
+    < vg_draw_hline(0, 39, 30, 0x0000003f [63]) -> (ret: 0)
+  < vg_draw_rectangle(0, 0, 30, 40, 0x0000003f [63]) -> (ret: 0)
+  @lab5.c:116, video_test_rectangle
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff4e0, addr: 0xeffff528)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000000000000000010]>)
+  @lab5.c:125, video_test_rectangle
+    kbc_ih()
+    @kbc.c:21, kbc_ih
+      sys_inb(STAT_REG, &statusregister)
+    > sys_inb(0x64, addr: 0xeffff40c)
+    < sys_inb(0x64, addr: 0xeffff40c [0x1d = 0b00011101])
+    @kbc.c:29, kbc_ih
+      sys_inb(OUT_BUF, &scancode32bit)
+    > sys_inb(0x60, addr: 0xeffff408)
+    < sys_inb(0x60, addr: 0xeffff408 [0x01 = 0b00000001])
+  @lab5.c:116, video_test_rectangle
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff4e0, addr: 0xeffff528)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000000000000000010]>)
+  @lab5.c:125, video_test_rectangle
+    kbc_ih()
+    @kbc.c:21, kbc_ih
+      sys_inb(STAT_REG, &statusregister)
+    > sys_inb(0x64, addr: 0xeffff40c)
+    < sys_inb(0x64, addr: 0xeffff40c [0x1d = 0b00011101])
+    @kbc.c:29, kbc_ih
+      sys_inb(OUT_BUF, &scancode32bit)
+    > sys_inb(0x60, addr: 0xeffff408)
+    < sys_inb(0x60, addr: 0xeffff408 [0x81 = 0b10000001])
+  @kbd.c:33, keyboard_unsubscribe_int
+    sys_irqdisable(&hook_id)
+  > sys_irqdisable(addr: 0x81a8364 [13])
+  < sys_irqdisable(addr: 0x81a8364 [13]) -> (ret: 0)
+  @kbd.c:36, keyboard_unsubscribe_int
+    sys_irqrmpolicy(&hook_id)
+  > sys_irqrmpolicy(addr: 0x81a8364 [13])
+  < sys_irqrmpolicy(addr: 0x81a8364 [13]) -> (ret: 0)
+  @lab5.c:151, video_test_rectangle
+    vg_exit()
+  < vg_exit() -> (ret: 0)
+< video_test_rectangle(0x105, 0, 0, 30, 40, 0x0000003f [63]) -> (ret: 0)

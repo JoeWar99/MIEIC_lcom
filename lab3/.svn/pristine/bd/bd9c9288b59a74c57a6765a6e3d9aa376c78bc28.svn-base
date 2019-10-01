@@ -1,0 +1,171 @@
+#include <lcom/lcf.h>
+#include <lcom/lab3.h>
+#include <minix/drivers.h>
+#include <minix/syslib.h>
+#include <minix/sysutil.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#include "kbd.h"
+#include "i8042.h"
+#include "kbc.h"
+
+int main(int argc, char *argv[]) {
+  // sets the language of LCF messages (can be either EN-US or PT-PT)
+  lcf_set_language("EN-US");
+
+  // enables to log function invocations that are being "wrapped" by LCF
+  // [comment this out if you don't want/need/ it]
+  lcf_trace_calls("/home/lcom/labs/lab3/trace.txt");
+
+  // enables to save the output of printf function calls on a file
+  // [comment this out if you don't want/need it]
+  lcf_log_output("/home/lcom/labs/lab3/output.txt");
+
+  // handles control over to LCF
+  // [LCF handles command line arguments and invokes the right function]
+  if (lcf_start(argc, argv))
+    return 1;
+
+  // LCF clean up tasks
+  // [must be the last statement before return]
+  lcf_cleanup();
+
+  return 0;
+}
+extern uint8_t scancode;
+extern int sys_inb_counter;
+
+int (kbd_test_scan)(bool (assembly)) {
+
+  int ipc_status, r, irq_set;
+  uint8_t bit_no,size=0,bytes[2];
+  bool make;
+  message msg;
+  int multiplebytes=0;
+
+
+  if(kb_subscribe_int(&bit_no)!=0)
+    return 1;
+
+  irq_set =  BIT(bit_no);
+
+  while(scancode!=ESC_BREAK) {
+    if ( (r = driver_receive(ANY, &msg, &ipc_status)) != 0 ) {
+      printf("driver_receive failed with: %d", r);
+      continue;
+    }
+
+    if (is_ipc_notify(ipc_status)) {
+      switch (_ENDPOINT_P(msg.m_source)) {
+        case HARDWARE:
+
+            if (msg.m_notify.interrupts & irq_set) {
+              if(assembly==FALSE){
+                keyboard_handler_IN_C();
+                  //ok, aqui temos um scancode, agora temos de o testar.
+
+                if(multiplebytes == 1){
+                    multiplebytes =0;
+                    bytes[1] = scancode;
+                    size = 2;
+                  }
+            
+                else if(scancode==0xE0){
+                   
+                    multiplebytes = 1;
+                    bytes[0]=scancode;
+                  }
+                else{
+                bytes[0]=scancode;
+                size = 1;
+                }
+                  //testar se é breakcode:
+                if((scancode&MSB)==0x00){
+                  make=TRUE;
+                }else{
+                  make=FALSE;
+                }
+                /*if(scancode==ESC_BREAK){
+                  return 0;
+                }*/
+              
+        
+                  if(multiplebytes!= 1){
+                    kbd_print_scancode(make,size,bytes);
+                  }
+                  //ver se e um breakcode
+                }else{
+                  //nao faz nada
+                }
+
+              }else if(assembly==TRUE){
+                printf("Ainda nao implementado\n");
+              }
+              break;
+        default:
+              break;
+      }
+    }
+      else{
+        //fica vazio
+    }
+ }
+
+ if((keyboard_unsubscribe_int())!=0){
+   return -1;
+ }
+
+ printf("%d\n", sys_inb_counter);
+ return 0;
+ //Agora tenho de correr os testes para ver se e uma data type
+}
+int (kbd_test_poll)() {
+  
+  uint8_t size=0,bytes[2];
+  bool make;
+  int multiplebytes=0;
+
+  while(scancode != ESC_BREAK){
+    
+    if(keyboard_handler_IN_C_POLL()!=0)
+      return -1;
+
+    if(multiplebytes == 1){
+      multiplebytes =0;
+      bytes[1] = scancode;
+      size = 2;
+      }
+            
+    else if(scancode==0xE0){
+      
+      multiplebytes = 1;
+      bytes[0]=scancode;
+                  }
+     else{
+      bytes[0]=scancode;
+      size = 1;
+                }
+                  //testar se é breakcode:
+    if((scancode&MSB)==0x00){
+      make=TRUE;
+    }else{
+      make=FALSE;
+      }
+    
+    if(multiplebytes!= 1){
+        kbd_print_scancode(make,size,bytes);
+      }
+  }
+
+  printf("%d\n", sys_inb_counter);
+  return 0;    
+}
+  
+int (kbd_test_timed_scan)(uint8_t UNUSED(n)) {
+  return 0;
+    /* To be completed */
+    /* When you use argument n for the first time, delete the UNUSED macro */
+}

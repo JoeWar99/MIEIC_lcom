@@ -1,0 +1,8 @@
+#ifdef
+
+int keyboard_status_read(uint8_t stat);
+
+
+
+
+int sys_inb_cnt(port_t port, unsigned long*byte);

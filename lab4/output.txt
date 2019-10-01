@@ -1,0 +1,16 @@
+Tudo ok, FIFO Working
+MAQUINA 1
+leitura 1 
+case 1
+character enviado O 
+character enviado l 
+character enviado a 
+character enviado e 
+character enviado s 
+character enviado t 
+character enviado o 
+character enviado u 
+BYTES ENVIADOS 8 
+leitura 1 
+case 1
+BYTES ENVIADOS 0 

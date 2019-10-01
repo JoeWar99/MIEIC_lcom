@@ -1,0 +1,213 @@
+#include <lcom/lcf.h>
+#include <lcom/timer.h>
+#include <minix/syslib.h>
+#include <stdint.h>
+#include <minix/drivers.h>
+#include "i8254.h"
+#include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int hook_id=0;
+unsigned int globalcounter = 0;
+
+uint8_t(timerselector) (uint8_t timer){
+//func que seleciona o timer. Ambiguidade valor numerico do timer-Ref do timer
+    if(timer==0)
+      timer = TIMER_0;
+    else if(timer==1)
+      timer = TIMER_1;
+    else if(timer==2)
+      timer = TIMER_2;
+
+  return timer;
+}
+
+
+int (timer_set_frequency)(uint8_t (timer), uint32_t (freq)) {
+//func que altera a frequencia. Problema, o timer so altera 16
+  uint8_t st,stout=0x00,timerref= 0x00;
+  uint8_t msb, lsb = 0x00;
+
+  uint16_t outbbyte=0x00;
+
+  outbbyte = (uint32_t)(TIMER_FREQ/freq);
+
+  timerref = timerselector(timer);
+
+  if(timer_get_conf(timerref, &st)!=0)//tiro a config atual, para a preservar
+    return 1;
+
+  stout=st;
+  stout=stout&0x0f; //preserva a integridade do st, o byte retorno,o e preserva os 4 bits menos significativos.
+
+  stout=stout|TIMER_LSB_MSB;//o modo preferido, no guiao para dar set ao timer e LSB Followed by MSB
+
+//preparar a control word para incidir sobre o timer pretendido
+  if(timerref == TIMER_1)
+    stout = stout|TIMER_SEL1;
+
+  else if(timerref == TIMER_2)
+    stout = stout|TIMER_2;
+
+//mandar a control word
+  if(sys_outb(TIMER_CTRL, stout)!=0)
+    return 1;
+
+
+  if(util_get_LSB(outbbyte, &lsb)!=0){//tirar os LSBs para dar upload para o register de 8 bits followed by MSB
+    return 1;
+  }
+
+  if(sys_outb(timerref,lsb)!=0){
+    return 1;
+  }
+
+  if(util_get_MSB(outbbyte, &msb)!=0)//tira o MSB para mandar os restantes 8 bits para o timer com a frequecia certa
+    return 1;
+
+  if(sys_outb(timerref,msb)!=0){
+    return 1;
+  }
+
+  return 0;
+}
+
+int (timer_subscribe_int)(uint8_t *bit_no) {
+
+  
+
+  
+
+  if(sys_irqsetpolicy(TIMER0_IRQ,IRQ_REENABLE,&hook_id)!=OK)
+    return 1;
+  
+  *bit_no = IRQ_REENABLE;
+  
+  
+
+
+  return 0;
+}
+
+
+  
+int (timer_unsubscribe_int)() {
+
+  if(sys_irqdisable(&hook_id)!=OK)
+    return 1;  
+  
+  if(sys_irqrmpolicy(&hook_id)!=OK)
+    return 1;
+  
+
+  return 0;
+}
+
+void (timer_int_handler)() {
+  
+  globalcounter ++;
+}
+
+int (timer_get_conf)(uint8_t timer, uint8_t *st) {
+
+  uint8_t readback=0x00, timeradress= 0x00; // byte
+  uint32_t aux;
+
+  timeradress = timerselector(timer);
+
+  readback=readback|TIMER_RB_CMD;//programa a control word
+
+  readback = readback|BIT(5);//no guiao e explicito que o count, ativo em baixo, nunca e para ler, por isso, pomo-lo a alto
+
+
+//Seleciona o Timer na Control Word
+  if(timeradress == TIMER_0){
+    readback = readback|BIT(1);
+  }
+  else if(timeradress == TIMER_1){
+    readback = readback|BIT(2);
+  }
+  else if(timeradress == TIMER_2){
+    readback = readback|BIT(3);
+  }
+//manda a control word
+  if(sys_outb(TIMER_CTRL	, readback)!=0){
+    return 1;
+  }
+//recebemos a config do timer
+  if(sys_inb(timeradress, &aux)!=0){
+    return 1;
+  }
+
+  *st=(uint8_t)aux;//cast para a control word ter 8 bits, falar com o zé, se nao era melhor fazer ou
+
+  return 0;
+}
+
+int (timer_display_conf)(uint8_t timer, uint8_t st,
+                        enum timer_status_field field) {
+
+
+  union timer_status_field_val conf;
+  uint8_t staux, timeradress = 0x00;
+  timeradress = timerselector(timer);
+
+  if(timer_get_conf(timer, &st)==1){
+    return 1;
+  }
+  staux=st;//havia aqui um erro, inicializala antes nao fazia nada
+
+  //De acordo com a implementacao, temos de passar para um enum o modo como vamos ler
+  if(field == all){
+    conf.byte = st;
+  }
+
+  else if(field == initial){
+    staux = staux >> 4;//tirar os bits 5 e 4, isto e so preciso para o caso de termos de tirar o initialization mode
+
+    //nos andamos com staux para a direita, para por os lsbs prontos a dar-nos info acerca do que queremos
+
+    if((staux&TIMER_TYPEOFACESS) == 0x01)
+      conf.in_mode = LSB_only;
+
+    else if((staux&TIMER_TYPEOFACESS) == 0x02)
+      conf.in_mode = MSB_only;
+
+    else if((staux&TIMER_TYPEOFACESS) == 0x03)
+      conf.in_mode = MSB_after_LSB;
+
+    else
+      conf.in_mode = INVAL_val;
+
+    staux = st;//
+  }
+
+
+  else if(field == mode){
+
+    staux = staux >> 1 ;
+    staux=staux&0x07;
+
+    conf.count_mode = staux;
+
+    staux=st;
+  }
+
+  else if(field == base){
+
+    if((staux&TIMER_BCD)==TIMER_BCD)
+      conf.bcd = true;
+
+    else if((staux&TIMER_BCD)==TIMER_BIN)
+      conf.bcd = false;
+  }else{
+    //caso haja algum prob com a estrutura retorna erro,
+    return 1;
+  }
+
+  if(timer_print_config(timer, field, conf)==1){
+    return 1;
+  }
+  return 0;
+}

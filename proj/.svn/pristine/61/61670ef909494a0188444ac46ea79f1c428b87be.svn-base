@@ -1,0 +1,10 @@
+#pragma once
+/** @defgroup game_macros game_macros
+ * @{
+ * Macros for certain types of bitmaps, like where the floor is on the background bitmap
+ */
+#define FLOOR_POSITION 360
+
+
+
+

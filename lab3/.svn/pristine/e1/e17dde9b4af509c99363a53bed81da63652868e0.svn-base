@@ -1,0 +1,65 @@
+#include <stdbool.h>
+#include <stdint.h>
+#include <lcom/lcf.h>
+#include <minix/sysutil.h>
+#include <stdlib.h>
+#include <minix/drivers.h>
+#include <stdint.h>
+#include <minix/syslib.h>
+#include "kbd.h"
+#include "i8042.h"
+#include "i8254.h"
+#include "kbc.h"
+#include "lab3.h"
+
+int sys_inb_counter=0;
+
+
+#ifdef LAB3
+  int sys_inb_cnt(port_t port, unsigned long*byte);
+  #else
+  #define sys_inb_cnt(p,q) sys_inb_cnt(p,q)
+  #endif
+
+int sys_inb_cnt(port_t port, unsigned long*byte){
+  sys_inb_cnt(port,byte);
+  sys_inb_cnt++;
+  return 0;
+}
+
+uint8_t keyboard_OBF_read(uint8_t *stat){
+  int i=0;
+  uint32_t data;
+  uint8_t scan_code=0x00;
+  
+  while( i<10 ) {
+    sys_inb_cnt(STAT_REG, stat);
+    
+    if(stat & OBF){
+      sys_inb_cnt(OUT_BUF, &data);
+      
+      scan_code=(uint8_t)(data&0xFF);// em alternativa aplicar um & logico
+
+      if( (stat & (PAR_ERR|TO_ERR))==0)
+        return data;
+      else 
+        return -1;
+    }
+    i++;
+    delay(WAIT_KBC);
+  }
+  return -1;
+}
+
+int keyboard_status_write(uint8_t *stat)
+  int i=0;
+  while( i<10 ) {
+    sys_inb_cnt(STAT_REG, stat); /*assuming it returns OK*//*
+loop while 8042 input buffer is not empty*/
+    if( (stat & IBF) == 0 ) {
+      sys_outb(KBC_CMD_REG, cmd); /*no args command*/  
+      return 0;
+  }
+    i++
+    delay(WAIT_KBC);
+}

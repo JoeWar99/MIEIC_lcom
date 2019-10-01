@@ -1,0 +1,207 @@
+@lcflib.a:2018, lcf_start
+  mouse_test_packet(cnt)
+> mouse_test_packet(10)
+  @uart.c:176, uart_subscribe_int
+    sys_irqsetpolicy(IRQ_UART_LINE, IRQ_REENABLE | IRQ_EXCLUSIVE, &uart_hook_id)
+  > sys_irqsetpolicy(4, 3, addr: 0x81c90d0 [4])
+  < sys_irqsetpolicy(4, 3, addr: 0x81c90d0 [10]) -> (ret: 0)
+  @uart.c:183, uart_subscribe_int
+    sys_outb(FIFO_CONTROL_REG, BIT(UART_REGISTER_FCR_ENABLE_FIFO) | BIT(UART_REGISTER_FCR_CLEAR_RECEIVE_FIFO) | BIT(UART_REGISTER_FCR_CLEAR_TRANSMIT_FIFO))
+  > sys_outb(0x3fa, 0x07 = 0b00000111)
+  @uart.c:188, uart_subscribe_int
+    sys_outb(INTERRUPT_ENABLE_REGISTER, BIT(UART_REGISTER_IER_RECEIVED_DATA_INT) | BIT(UART_REGISTER_IER_TRANSMITTER_EMPTY_INT) | BIT(UART_REGISTER_IER_RECEIVER_LSR_INT))
+  > sys_outb(0x3f9, 0x07 = 0b00000111)
+  @uart.c:190, uart_subscribe_int
+    sys_inb(INTERRUPT_ID_REG, &leitura)
+  > sys_inb(0x3fa, addr: 0xeffff660)
+  < sys_inb(0x3fa, addr: 0xeffff660 [0xc2 = 0b11000010])
+  @uart.c:198, uart_subscribe_int
+    printf("Tudo ok, FIFO Working\n")
+    "Tudo ok, FIFO Working"
+  @uart.c:27, serial_set
+    sys_inb(LINE_CONTROL_REG, &lcr)
+  > sys_inb(0x3fb, addr: 0xeffff65c)
+  < sys_inb(0x3fb, addr: 0xeffff65c [0x1f = 0b00011111])
+  @uart.c:56, serial_set
+    sys_outb(LINE_CONTROL_REG, lcr)
+  > sys_outb(0x3fb, 0x9f = 0b10011111)
+  @uart.c:62, serial_set
+    sys_outb(RECEIVER_BUFFER_REG, WORD_LSB(rate))
+  > sys_outb(0x3f8, 0x01 = 0b00000001)
+  @uart.c:67, serial_set
+    sys_outb(INTERRUPT_ENABLE_REGISTER, WORD_MSB(rate))
+  > sys_outb(0x3f9, 0x00 = 0b00000000)
+  @uart.c:72, serial_set
+    sys_outb(LINE_CONTROL_REG, lcr & ~BIT(UART_REGISTER_LCR_DLAB_BIT))
+  > sys_outb(0x3fb, 0x1f = 0b00011111)
+  @lab4.c:98, mouse_test_packet
+    sys_outb(TRANSMITTER_HOLDING_REG, thr_sed)
+  > sys_outb(0x3f8, 0x64 = 0b01100100)
+  @lab4.c:101, mouse_test_packet
+    printf("MAQUINA 1\n")
+    "MAQUINA 1"
+  @lab4.c:104, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000000000000010000]>)
+  @uart.c:211, uart_ih
+    sys_inb(INTERRUPT_ID_REG, &leitura)
+  > sys_inb(0x3fa, addr: 0xeffff658)
+  < sys_inb(0x3fa, addr: 0xeffff658 [0xc2 = 0b11000010])
+  @uart.c:220, uart_ih
+    printf("leitura %d \n", leitura)
+    "leitura 1 "
+  @uart.c:234, uart_ih
+    printf("case 1\n")
+    "case 1"
+  @uart.c:92, transmit_queue
+    sys_inb(LINE_STATUS_REG, &leitura)
+  > sys_inb(0x3fd, addr: 0xeffff620)
+  < sys_inb(0x3fd, addr: 0xeffff620 [0x60 = 0b01100000])
+  @uart.c:105, transmit_queue
+    sys_outb(TRANSMITTER_HOLDING_REG, aux_sender)
+  > sys_outb(0x3f8, 0x4f = 0b01001111)
+  @uart.c:106, transmit_queue
+    printf("character enviado %c \n", *carater)
+    "character enviado O "
+  @uart.c:92, transmit_queue
+    sys_inb(LINE_STATUS_REG, &leitura)
+  > sys_inb(0x3fd, addr: 0xeffff620)
+  < sys_inb(0x3fd, addr: 0xeffff620 [0x60 = 0b01100000])
+  @uart.c:105, transmit_queue
+    sys_outb(TRANSMITTER_HOLDING_REG, aux_sender)
+  > sys_outb(0x3f8, 0x6c = 0b01101100)
+  @uart.c:106, transmit_queue
+    printf("character enviado %c \n", *carater)
+    "character enviado l "
+  @uart.c:92, transmit_queue
+    sys_inb(LINE_STATUS_REG, &leitura)
+  > sys_inb(0x3fd, addr: 0xeffff620)
+  < sys_inb(0x3fd, addr: 0xeffff620 [0x60 = 0b01100000])
+  @uart.c:105, transmit_queue
+    sys_outb(TRANSMITTER_HOLDING_REG, aux_sender)
+  > sys_outb(0x3f8, 0x61 = 0b01100001)
+  @uart.c:106, transmit_queue
+    printf("character enviado %c \n", *carater)
+    "character enviado a "
+  @uart.c:92, transmit_queue
+    sys_inb(LINE_STATUS_REG, &leitura)
+  > sys_inb(0x3fd, addr: 0xeffff620)
+  < sys_inb(0x3fd, addr: 0xeffff620 [0x60 = 0b01100000])
+  @uart.c:105, transmit_queue
+    sys_outb(TRANSMITTER_HOLDING_REG, aux_sender)
+  > sys_outb(0x3f8, 0x65 = 0b01100101)
+  @uart.c:106, transmit_queue
+    printf("character enviado %c \n", *carater)
+    "character enviado e "
+  @uart.c:92, transmit_queue
+    sys_inb(LINE_STATUS_REG, &leitura)
+  > sys_inb(0x3fd, addr: 0xeffff620)
+  < sys_inb(0x3fd, addr: 0xeffff620 [0x60 = 0b01100000])
+  @uart.c:105, transmit_queue
+    sys_outb(TRANSMITTER_HOLDING_REG, aux_sender)
+  > sys_outb(0x3f8, 0x73 = 0b01110011)
+  @uart.c:106, transmit_queue
+    printf("character enviado %c \n", *carater)
+    "character enviado s "
+  @uart.c:92, transmit_queue
+    sys_inb(LINE_STATUS_REG, &leitura)
+  > sys_inb(0x3fd, addr: 0xeffff620)
+  < sys_inb(0x3fd, addr: 0xeffff620 [0x60 = 0b01100000])
+  @uart.c:105, transmit_queue
+    sys_outb(TRANSMITTER_HOLDING_REG, aux_sender)
+  > sys_outb(0x3f8, 0x74 = 0b01110100)
+  @uart.c:106, transmit_queue
+    printf("character enviado %c \n", *carater)
+    "character enviado t "
+  @uart.c:92, transmit_queue
+    sys_inb(LINE_STATUS_REG, &leitura)
+  > sys_inb(0x3fd, addr: 0xeffff620)
+  < sys_inb(0x3fd, addr: 0xeffff620 [0x60 = 0b01100000])
+  @uart.c:105, transmit_queue
+    sys_outb(TRANSMITTER_HOLDING_REG, aux_sender)
+  > sys_outb(0x3f8, 0x6f = 0b01101111)
+  @uart.c:106, transmit_queue
+    printf("character enviado %c \n", *carater)
+    "character enviado o "
+  @uart.c:92, transmit_queue
+    sys_inb(LINE_STATUS_REG, &leitura)
+  > sys_inb(0x3fd, addr: 0xeffff620)
+  < sys_inb(0x3fd, addr: 0xeffff620 [0x60 = 0b01100000])
+  @uart.c:105, transmit_queue
+    sys_outb(TRANSMITTER_HOLDING_REG, aux_sender)
+  > sys_outb(0x3f8, 0x75 = 0b01110101)
+  @uart.c:106, transmit_queue
+    printf("character enviado %c \n", *carater)
+    "character enviado u "
+  @uart.c:111, transmit_queue
+    printf("BYTES ENVIADOS %d \n", contador_bytes)
+    "BYTES ENVIADOS 8 "
+  @uart.c:281, uart_ih
+    sys_inb(INTERRUPT_ID_REG, &leitura)
+  > sys_inb(0x3fa, addr: 0xeffff658)
+  < sys_inb(0x3fa, addr: 0xeffff658 [0xc2 = 0b11000010])
+  @uart.c:220, uart_ih
+    printf("leitura %d \n", leitura)
+    "leitura 1 "
+  @uart.c:234, uart_ih
+    printf("case 1\n")
+    "case 1"
+  @uart.c:111, transmit_queue
+    printf("BYTES ENVIADOS %d \n", contador_bytes)
+    "BYTES ENVIADOS 0 "
+  @uart.c:281, uart_ih
+    sys_inb(INTERRUPT_ID_REG, &leitura)
+  > sys_inb(0x3fa, addr: 0xeffff658)
+  < sys_inb(0x3fa, addr: 0xeffff658 [0xc1 = 0b11000001])
+  @uart.c:152, self_clearing_receiver
+    sys_inb(FIFO_CONTROL_REG, &leitura)
+  > sys_inb(0x3fa, addr: 0xeffff664)
+  < sys_inb(0x3fa, addr: 0xeffff664 [0xc1 = 0b11000001])
+  @uart.c:154, self_clearing_receiver
+    sys_outb(FIFO_CONTROL_REG, leitura)
+  > sys_outb(0x3fa, 0xc3 = 0b11000011)
+  @uart.c:163, self_clearing_transmitter
+    sys_inb(FIFO_CONTROL_REG, &leitura)
+  > sys_inb(0x3fa, addr: 0xeffff664)
+  < sys_inb(0x3fa, addr: 0xeffff664 [0xc1 = 0b11000001])
+  @uart.c:166, self_clearing_transmitter
+    sys_outb(FIFO_CONTROL_REG, leitura)
+  > sys_outb(0x3fa, 0xc5 = 0b11000101)
+  @uart.c:292, uart_unsubscribe_int
+    sys_irqdisable(&uart_hook_id)
+  > sys_irqdisable(addr: 0x81c90d0 [10])
+  < sys_irqdisable(addr: 0x81c90d0 [10]) -> (ret: 0)
+  @uart.c:299, uart_unsubscribe_int
+    sys_inb(INTERRUPT_ENABLE_REGISTER, &leitura)
+  > sys_inb(0x3f9, addr: 0xeffff654)
+  < sys_inb(0x3f9, addr: 0xeffff654 [0x07 = 0b00000111])
+  @uart.c:303, uart_unsubscribe_int
+    sys_outb(INTERRUPT_ENABLE_REGISTER, leitura)
+  > sys_outb(0x3f9, 0x00 = 0b00000000)
+  @uart.c:307, uart_unsubscribe_int
+    sys_inb(FIFO_CONTROL_REG, &leitura)
+  > sys_inb(0x3fa, addr: 0xeffff654)
+  < sys_inb(0x3fa, addr: 0xeffff654 [0xc1 = 0b11000001])
+  @uart.c:311, uart_unsubscribe_int
+    sys_outb(FIFO_CONTROL_REG, leitura)
+  > sys_outb(0x3fa, 0xc0 = 0b11000000)
+  @uart.c:152, self_clearing_receiver
+    sys_inb(FIFO_CONTROL_REG, &leitura)
+  > sys_inb(0x3fa, addr: 0xeffff658)
+  < sys_inb(0x3fa, addr: 0xeffff658 [0x01 = 0b00000001])
+  @uart.c:154, self_clearing_receiver
+    sys_outb(FIFO_CONTROL_REG, leitura)
+  > sys_outb(0x3fa, 0x03 = 0b00000011)
+  @uart.c:163, self_clearing_transmitter
+    sys_inb(FIFO_CONTROL_REG, &leitura)
+  > sys_inb(0x3fa, addr: 0xeffff65c)
+  < sys_inb(0x3fa, addr: 0xeffff65c [0xc1 = 0b11000001])
+  @uart.c:166, self_clearing_transmitter
+    sys_outb(FIFO_CONTROL_REG, leitura)
+  > sys_outb(0x3fa, 0xc5 = 0b11000101)
+  @uart.c:318, uart_unsubscribe_int
+    sys_irqrmpolicy(&uart_hook_id)
+  > sys_irqrmpolicy(addr: 0x81c90d0 [10])
+  < sys_irqrmpolicy(addr: 0x81c90d0 [10]) -> (ret: 0)
+< mouse_test_packet(10) -> (ret: 0)
